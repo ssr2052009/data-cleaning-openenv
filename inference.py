@@ -1,32 +1,14 @@
 import os
-import requests
 from env import DataCleaningEnv, Action as EnvAction
-
-# =========================
-# ENV VARIABLES
-# =========================
-HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_NAME = os.getenv("MODEL_NAME", "google/flan-t5-large")
-API_URL = f"https://api-inference.huggingface.co/models/{MODEL_NAME}"
-
-HEADERS = {
-    "Authorization": f"Bearer {HF_TOKEN}"
-}
-
-# =========================
-# HELPER FUNCTION
-# =========================
-def query(payload):
-    response = requests.post(API_URL, headers=HEADERS, json=payload)
-    response.raise_for_status()
-    return response.json()
+from tasks import TASKS
 
 # =========================
 # CLEANING LOGIC
 # =========================
 def clean_data(text):
     try:
-        parts = text.replace(":", "=").split("||")
+        text = text.replace(":", "=")
+        parts = text.split("||")
         cleaned = []
 
         for part in parts:
@@ -49,36 +31,27 @@ def clean_data(text):
             cleaned.append(f"{key}={value}")
 
         return " || ".join(cleaned)
+
     except:
         return text
+
 
 # =========================
 # AGENT ACTION
 # =========================
 def act(observation):
     raw_data = observation.get("raw_data", "")
-
     cleaned = clean_data(raw_data)
-
-    # optional LLM
-    try:
-        prompt = f"Clean and normalize this: {cleaned}"
-        output = query({"inputs": prompt})
-        result = output[0]["generated_text"]
-        if result:
-            cleaned = result
-    except:
-        pass
-
     return {"cleaned_data": cleaned}
 
+
 # =========================
-# MAIN LOOP (IMPORTANT)
+# MAIN LOOP (CRITICAL)
 # =========================
 def main():
     env = DataCleaningEnv()
 
-    for _ in range(3):   # keep simple
+    for _ in range(len(TASKS)):   # ✅ correct loop
         obs = env.reset()
         task_name = obs.get("task_type", "unknown")
 
@@ -90,8 +63,12 @@ def main():
         obs, reward, done, info = env.step(action)
 
         print(f"[STEP] step=1 reward={reward}", flush=True)
+
         print(f"[END] task={task_name} score={reward} steps=1", flush=True)
 
 
-# 🔥 RUN ALWAYS (CRITICAL)
-main()
+# =========================
+# ENTRYPOINT
+# =========================
+if __name__ == "__main__":
+    main()
