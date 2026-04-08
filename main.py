@@ -15,7 +15,7 @@ def root():
     return {"message": "Smart Data Cleaning API is running"}
 
 # Reset
-@app.get("/reset")
+@app.post("/reset")
 def reset():
     obs = env.reset()
     return obs.dict()
