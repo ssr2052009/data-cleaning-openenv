@@ -1,0 +1,18 @@
+[project]
+name = "smart-data-cleaning"
+version = "0.1.0"
+description = "OpenEnv Smart Data Cleaning Environment"
+authors = [
+  { name="Saisriram" }
+]
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "requests",
+  "pydantic",
+  "openenv-core"
+]
+
+[tool.openenv]
+entrypoint = "app:app"
+
