@@ -17,14 +17,36 @@ def root():
 # Reset
 @app.get("/reset")
 def reset():
-    return {"result": str(env.reset())}
+    try:
+        result = env.reset()
+        return {"result": result}
+    except Exception as e:
+        return {"error": str(e)}
 
-# Step
+# Step (FIXED)
 @app.post("/step")
 def step(action: Action):
-    return {"result": str(env.step(action.data))}
+    try:
+        # Try string input first
+        try:
+            result = env.step(action.data)
+        except:
+            # If env expects dict
+            result = env.step({"data": action.data})
+
+        return {"result": result}
+
+    except Exception as e:
+        return {
+            "error": str(e),
+            "input_received": action.data
+        }
 
 # State
 @app.get("/state")
 def state():
-    return {"result": str(env.state())}
+    try:
+        result = env.state()
+        return {"result": result}
+    except Exception as e:
+        return {"error": str(e)}
