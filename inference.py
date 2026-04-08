@@ -14,7 +14,7 @@ HEADERS = {
 }
 
 # =========================
-# HELPER FUNCTION TO QUERY LLM
+# HELPER FUNCTION
 # =========================
 def query(payload):
     response = requests.post(API_URL, headers=HEADERS, json=payload)
@@ -22,14 +22,17 @@ def query(payload):
     return response.json()
 
 # =========================
-# RULE-BASED CLEANING
+# CLEANING LOGIC
 # =========================
 def clean_data(text):
-    """Simple rule-based normalization"""
     try:
-        parts = text.split("||")
+        parts = text.replace(":", "=").split("||")
         cleaned = []
+
         for part in parts:
+            if "=" not in part:
+                continue
+
             key, value = part.split("=")
             key = key.strip().lower()
             value = value.strip()
@@ -44,27 +47,61 @@ def clean_data(text):
                 value = value.lower()
 
             cleaned.append(f"{key}={value}")
+
         return " || ".join(cleaned)
-    except Exception:
+    except:
         return text
 
 # =========================
-# ACT FUNCTION REQUIRED BY OPENENV
+# AGENT ACTION
 # =========================
-def act(observation: dict) -> dict:
-    """
-    Takes environment observation and returns action dict.
-    Expected output format: {"cleaned_data": <str>}
-    """
+def act(observation):
     raw_data = observation.get("raw_data", "")
-    # Step 1: Rule-based cleaning
+
     cleaned = clean_data(raw_data)
-    # Step 2: Optional LLM refinement
+
+    # optional LLM
     try:
-        prompt = f"Clean and normalize this data properly: {cleaned}"
+        prompt = f"Clean and normalize this: {cleaned}"
         output = query({"inputs": prompt})
         result = output[0]["generated_text"]
-        cleaned = result if result else cleaned
-    except Exception:
-        pass  # fallback to rule-based
+        if result:
+            cleaned = result
+    except:
+        pass
+
     return {"cleaned_data": cleaned}
+
+# =========================
+# MAIN LOOP (IMPORTANT)
+# =========================
+def main():
+    env = DataCleaningEnv()
+
+    for i in range(len(env.__dict__.get("TASKS", [1,2,3])) + 3):
+        obs = env.reset()
+
+        task_name = obs.get("task_type", "unknown")
+
+        # 🔥 REQUIRED
+        print(f"[START] task={task_name}", flush=True)
+
+        action_dict = act(obs)
+        action = EnvAction(**action_dict)
+
+        obs, reward, done, info = env.step(action)
+
+        # 🔥 REQUIRED
+        print(f"[STEP] step=1 reward={reward}", flush=True)
+
+        score = reward
+
+        # 🔥 REQUIRED
+        print(f"[END] task={task_name} score={score} steps=1", flush=True)
+
+
+# =========================
+# ENTRYPOINT
+# =========================
+if __name__ == "__main__":
+    main()
