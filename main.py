@@ -4,47 +4,40 @@ from env import DataCleaningEnv, Action as EnvAction
 
 # ----------- Input Model -----------
 class ActionInput(BaseModel):
-    data: str
-
+    data: str  # cleaned data from agent
 
 # ----------- App Init -----------
 app = FastAPI(title="Smart Data Cleaning API")
 env = DataCleaningEnv()
-
 
 # ----------- Root -----------
 @app.get("/")
 def root():
     return {"message": "Smart Data Cleaning API is running"}
 
-
-# ----------- Reset (IMPORTANT FIX) -----------
+# ----------- Reset Endpoint -----------
 @app.post("/reset")
 def reset():
+    """Reset the environment and return initial observation"""
     obs = env.reset()
-
     return {
-        "observation": obs.dict() if hasattr(obs, "dict") else obs,
+        "observation": obs,  # Already a dict from env.reset()
         "info": {},
     }
 
-
-# ----------- Step (IMPORTANT FIX) -----------
+# ----------- Step Endpoint -----------
 @app.post("/step")
 def step(action: ActionInput):
+    """Take action in the environment and return result"""
     try:
-        # Convert input → Env Action
         env_action = EnvAction(cleaned_data=action.data)
-
         obs, reward, done, info = env.step(env_action)
-
         return {
-            "observation": obs.dict() if hasattr(obs, "dict") else obs,
+            "observation": obs,  # Already a dict
             "reward": float(reward),
             "done": bool(done),
-            "info": info if isinstance(info, dict) else {},
+            "info": info,
         }
-
     except Exception as e:
         return {
             "observation": {},
@@ -53,12 +46,10 @@ def step(action: ActionInput):
             "info": {"error": str(e)},
         }
 
-
-# ----------- State -----------
+# ----------- State Endpoint -----------
 @app.get("/state")
 def state():
-    state = env.state()
-
+    """Return current environment state"""
     return {
-        "state": state if isinstance(state, dict) else {},
+        "state": env.state(),  # Already a dict
     }
