@@ -78,12 +78,10 @@ def act(observation):
 def main():
     env = DataCleaningEnv()
 
-    for i in range(len(env.__dict__.get("TASKS", [1,2,3])) + 3):
+    for _ in range(3):   # keep simple
         obs = env.reset()
-
         task_name = obs.get("task_type", "unknown")
 
-        # 🔥 REQUIRED
         print(f"[START] task={task_name}", flush=True)
 
         action_dict = act(obs)
@@ -91,17 +89,9 @@ def main():
 
         obs, reward, done, info = env.step(action)
 
-        # 🔥 REQUIRED
         print(f"[STEP] step=1 reward={reward}", flush=True)
-
-        score = reward
-
-        # 🔥 REQUIRED
-        print(f"[END] task={task_name} score={score} steps=1", flush=True)
+        print(f"[END] task={task_name} score={reward} steps=1", flush=True)
 
 
-# =========================
-# ENTRYPOINT
-# =========================
-if __name__ == "__main__":
-    main()
+# 🔥 RUN ALWAYS (CRITICAL)
+main()
