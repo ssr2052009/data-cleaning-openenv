@@ -3,8 +3,8 @@ title: Smart Data Cleaning
 emoji: 🧹
 colorFrom: blue
 colorTo: green
-sdk: docker
-sdk_version: "1.0"
+sdk: gradio
+sdk_version: "4
 python_version: "3.10"
 app_file: app.py
 pinned: false

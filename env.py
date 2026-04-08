@@ -3,23 +3,23 @@ from typing import Tuple, Dict
 from tasks import TASKS
 from grader import grade
 
+# Observation (what agent sees)
 class Observation(BaseModel):
     raw_data: str
     task_type: str
 
+# Action (what agent sends)
 class Action(BaseModel):
     cleaned_data: str
 
-class Reward(BaseModel):
-    score: float
-
+# Environment
 class DataCleaningEnv:
     def __init__(self):
         self.index = 0
         self.current_task = None
         self.steps = 0
 
-    def reset(self):
+    def reset(self) -> Observation:
         self.current_task = TASKS[self.index % len(TASKS)]
         self.index += 1
         self.steps = 0
@@ -38,8 +38,15 @@ class DataCleaningEnv:
             Observation(**self.current_task["input"]),
             reward,
             done,
-            {"task_type": self.current_task["input"]["task_type"]}
+            {
+                "expected_output": actual,
+                "your_output": pred,
+                "task_type": self.current_task["input"]["task_type"]
+            }
         )
 
     def state(self):
-        return self.current_task
+        return {
+            "input": self.current_task["input"],
+            "expected_output": self.current_task["output"]
+        }
