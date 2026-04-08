@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from env import DataCleaningEnv
+from env import DataCleaningEnv, Action as EnvAction
 
-# Input model
-class Action(BaseModel):
+# API input model
+class ActionInput(BaseModel):
     data: str
 
 app = FastAPI(title="Smart Data Cleaning API")
@@ -17,36 +17,29 @@ def root():
 # Reset
 @app.get("/reset")
 def reset():
+    obs = env.reset()
+    return obs.dict()
+
+# Step (FIXED PROPERLY)
+@app.post("/step")
+def step(action: ActionInput):
     try:
-        result = env.reset()
-        return {"result": result}
+        # Convert to Env Action
+        env_action = EnvAction(cleaned_data=action.data)
+
+        obs, reward, done, info = env.step(env_action)
+
+        return {
+            "observation": obs.dict(),
+            "reward": reward,
+            "done": done,
+            "info": info
+        }
+
     except Exception as e:
         return {"error": str(e)}
-
-# Step (FIXED)
-@app.post("/step")
-def step(action: Action):
-    try:
-        # Try string input first
-        try:
-            result = env.step(action.data)
-        except:
-            # If env expects dict
-            result = env.step({"data": action.data})
-
-        return {"result": result}
-
-    except Exception as e:
-        return {
-            "error": str(e),
-            "input_received": action.data
-        }
 
 # State
 @app.get("/state")
 def state():
-    try:
-        result = env.state()
-        return {"result": result}
-    except Exception as e:
-        return {"error": str(e)}
+    return env.state()
