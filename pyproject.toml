@@ -1,10 +1,6 @@
 [project]
 name = "smart-data-cleaning"
 version = "0.1.0"
-description = "OpenEnv Smart Data Cleaning Environment"
-authors = [
-  { name="Saisriram" }
-]
 dependencies = [
   "fastapi",
   "uvicorn",
@@ -13,6 +9,8 @@ dependencies = [
   "openenv-core"
 ]
 
+[project.scripts]
+server = "server.app:app"
+
 [tool.openenv]
 entrypoint = "app:app"
-
