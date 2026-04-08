@@ -1,3 +1,27 @@
+---
+title: Smart Data Cleaning
+emoji: 🧹
+colorFrom: blue
+colorTo: green
+sdk: docker
+sdk_version: "1.0"
+python_version: "3.10"
+app_file: app.py
+pinned: false
+---
+
+# 🧹 Smart Data Cleaning Environment (OpenEnv)
+
+## 🚀 Overview
+
+This project implements a **real-world data cleaning environment** using the OpenEnv framework.
+It allows an AI agent to **learn how to clean messy structured data** through interactions using:
+
+* `reset()`
+* `step()`
+* `state()`
+
+... (rest of your README content follows)
 # 🧹 Smart Data Cleaning Environment (OpenEnv)
 
 ## 🚀 Overview
