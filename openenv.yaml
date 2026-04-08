@@ -1,2 +1,2 @@
 name: data-cleaning-env
-entrypoint: main:app
+entrypoint: app:app
