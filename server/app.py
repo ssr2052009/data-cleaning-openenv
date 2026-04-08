@@ -53,6 +53,9 @@ def state():
     return {
         "state": env.state(),  # Already a dict
     }
+
+from app import app
+
 def main():
     return app
 
