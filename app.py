@@ -1,41 +1,64 @@
-import gradio as gr
-from env import DataCleaningEnv, Action
+from fastapi import FastAPI
+from pydantic import BaseModel
+from env import DataCleaningEnv, Action as EnvAction
 
-# Initialize environment
+# ----------- Input Model -----------
+class ActionInput(BaseModel):
+    data: str
+
+
+# ----------- App Init -----------
+app = FastAPI(title="Smart Data Cleaning API")
 env = DataCleaningEnv()
 
-def run_cleaning(input_text):
+
+# ----------- Root -----------
+@app.get("/")
+def root():
+    return {"message": "Smart Data Cleaning API is running"}
+
+
+# ----------- Reset (IMPORTANT FIX) -----------
+@app.post("/reset")
+def reset():
+    obs = env.reset()
+
+    return {
+        "observation": obs.dict() if hasattr(obs, "dict") else obs,
+        "info": {},
+    }
+
+
+# ----------- Step (IMPORTANT FIX) -----------
+@app.post("/step")
+def step(action: ActionInput):
     try:
-        # Reset environment to get a task
-        obs = env.reset()
+        # Convert input → Env Action
+        env_action = EnvAction(cleaned_data=action.data)
 
-        # Use user input as cleaned output
-        action = Action(cleaned_data=input_text)
+        obs, reward, done, info = env.step(env_action)
 
-        obs, reward, done, info = env.step(action)
-
-        return (
-            obs.raw_data,
-            input_text,
-            reward,
-            info.get("expected_output", "N/A")
-        )
+        return {
+            "observation": obs.dict() if hasattr(obs, "dict") else obs,
+            "reward": float(reward),
+            "done": bool(done),
+            "info": info if isinstance(info, dict) else {},
+        }
 
     except Exception as e:
-        return "Error", str(e), 0, "Error"
+        return {
+            "observation": {},
+            "reward": 0.0,
+            "done": True,
+            "info": {"error": str(e)},
+        }
 
-# UI
-interface = gr.Interface(
-    fn=run_cleaning,
-    inputs=gr.Textbox(label="Enter Cleaned Data"),
-    outputs=[
-        gr.Textbox(label="Original Raw Data"),
-        gr.Textbox(label="Your Cleaned Output"),
-        gr.Number(label="Reward Score"),
-        gr.Textbox(label="Expected Output")
-    ],
-    title="🧹 Smart Data Cleaning AI",
-    description="Enter cleaned version of messy data and get reward score!"
-)
 
-interface.launch(server_name="0.0.0.0", server_port=7860)
+# ----------- State -----------
+@app.get("/state")
+def state():
+    state = env.state()
+
+    return {
+        "state": state if isinstance(state, dict) else {},
+    }
