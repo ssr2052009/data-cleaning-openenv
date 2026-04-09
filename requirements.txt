@@ -3,3 +3,4 @@ uvicorn
 requests
 openenv-core
 pydantic
+openai
